@@ -25,17 +25,36 @@ function loadCommands() {
 	});
 }
 
-// A function that takes a markdown string as input and returns a string with trimmed MathJax equations
-function trimMathJax(markdown: string): string {
-  // A regular expression that matches MathJax equations delimited by $, $ or $$, $$
-  const mathJaxRegex = /(\$\$?)([^$]*?)(\$\$?)/g;
-  // A function that takes a matched equation and returns it with trimmed whitespace
-  const trimEquation = (match: string, start: string, equation: string, end: string) => {
-    // Remove any leading or trailing whitespace from the equation
-    equation = equation.trim();
-    // Return the equation with the original delimiters
-    return start + equation + end;
-  };
-  // Replace all MathJax equations in the markdown string with trimmed ones
-  return markdown.replace(mathJaxRegex, trimEquation);
+/**
+ * @param content - The content of the file to be formatted
+ * @returns The formatted content with MathJax expressions trimmed and formatted.
+ */
+function trimMathJax(content: string): string {
+  // Regular expression to match MathJax expressions
+  const mathJaxRegex = /(\$\$[\s\S]*?\$\$|\$[^\n\$]*\$)/g;
+
+  return content.replace(mathJaxRegex, (match) => {
+    // Remove spaces around operators and relations
+    let formatted = match.replace(/\s*([+\-*/<>=])\s*/g, '$1');
+
+    // Remove spaces around commas and semicolons
+    formatted = formatted.replace(/\s*([,;])\s*/g, '$1');
+
+    // Remove spaces around parentheses, brackets, and braces
+    formatted = formatted.replace(/\s*([\(\[\{])\s*/g, '$1');
+    formatted = formatted.replace(/\s*([\)\]\}])\s*/g, '$1');
+
+    // Remove spaces around superscript and subscript
+    formatted = formatted.replace(/\s*(\^|_)\s*/g, '$1');
+
+    // Remove multiple spaces
+    formatted = formatted.replace(/\s+/g, ' ');
+
+    // Trim spaces at the beginning and end of the expression
+    formatted = formatted.replace(/^\$\s+/, '$').replace(/\s+\$$/, '$');
+    formatted = formatted.replace(/^\$\$\s+/, '$$').replace(/\s+\$\$$/, '$$');
+
+    return formatted;
+  });
 }
+
